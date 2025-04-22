@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Info</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin: 50px; }
+    input { padding: 10px; width: 200px; font-size: 16px; }
+    button { padding: 10px 20px; font-size: 16px; }
+    #result img { width: 150px; }
+    .info { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Pokémon Info Finder</h1>
+  <input type="text" id="pokemonName" placeholder="Enter Pokémon name" />
+  <button onclick="getPokemon()">Search</button>
+
+  <div id="result" class="info"></div>
+
+  <script>
+    async function getPokemon() {
+      const name = document.getElementById("pokemonName").value.toLowerCase();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "Loading...";
+
+      try {
+        // Get Pokémon data
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+        const data = await res.json();
+
+        // Get species for evolution info
+        const speciesRes = await fetch(data.species.url);
+        const species = await speciesRes.json();
+
+        const image = data.sprites.front_default;
+        const types = data.types.map(t => t.type.name).join(", ");
+        const stage = species.evolves_from_species ? "Stage 1" : "Basic";
+        const evolution = species.evolves_from_species
+          ? species.evolves_from_species.name
+          : "None";
+        const region = species.generation.name.replace("generation-", "").toUpperCase();
+
+        resultDiv.innerHTML = `
+          <img src="${image}" alt="${name}" />
+          <h2>${name.toUpperCase()}</h2>
+          <p><strong>Type:</strong> ${types}</p>
+          <p><strong>Stage:</strong> ${stage}</p>
+          <p><strong>Evolution:</strong> ${evolution}</p>
+          <p><strong>Region:</strong> ${region}</p>
+        `;
+      } catch (err) {
+        resultDiv.innerHTML = "Pokémon not found. Try another name.";
+      }
+    }
+  </script>
+</body>
+</html>
